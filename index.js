@@ -75,9 +75,11 @@ async function run() {
 
         ///////////////////////////////////////////// USERS /////////////////////////////////////////////////
         app.post('/users', async (req, res) => {
-            const { name, email, photoURL, role } = req.body;
+            const { fname,lname, phone, email, photoURL, role } = req.body;
             const user = {
-                name: name,
+                fname: fname,
+                lname: lname,
+                phone:phone,
                 email: email,
                 photoURL: photoURL,
                 role: role

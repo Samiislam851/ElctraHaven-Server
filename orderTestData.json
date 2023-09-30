@@ -1,0 +1,32 @@
+{
+    "_id": ObjectId("5f6567b327f90a583a5e171f"), // Unique order ID
+    "orderDate": ISODate("2023-09-18T10:30:00Z"), // Date and time when the order was placed
+    "customer": {
+      "userId": ObjectId("5f655e9327f90a583a5e171d"), // Unique user ID of the customer
+      "name": "John Doe", // Customer's name
+      "email": "johndoe@example.com" // Customer's email address
+    },
+    "products": [
+      {
+        "productId": ObjectId("5f655f1727f90a583a5e171e"), // Unique product ID
+        "name": "Product 1", // Name of the product
+        "quantity": 2, // Quantity ordered
+        "price": 29.99 // Price per unit
+      },
+      // Include additional products as needed
+    ],
+    "totalAmount": 59.98, // Total order amount
+    "paymentMethod": "Credit Card", // Payment method used
+    "shippingAddress": {
+      "recipientName": "John Doe", // Recipient's name
+      "address": "123 Main St", // Street address
+      "city": "Cityville", // City or town
+      "state": "CA", // State or province
+      "postalCode": "12345", // Postal/ZIP code
+      "country": "USA" // Country
+    },
+    "orderStatus": "Confirmed", // Current order status (e.g., Confirmed, Shipped, Delivered)
+    "paymentStatus": "Paid", // Payment status (e.g., Paid, Pending)
+    // You can include additional fields as needed
+  }
+  
