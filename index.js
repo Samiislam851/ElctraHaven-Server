@@ -75,11 +75,11 @@ async function run() {
 
         ///////////////////////////////////////////// USERS /////////////////////////////////////////////////
         app.post('/users', async (req, res) => {
-            const { fname,lname, phone, email, photoURL, role } = req.body;
+            const { fname, lname, phone, email, photoURL, role } = req.body;
             const user = {
                 fname: fname,
                 lname: lname,
-                phone:phone,
+                phone: phone,
                 email: email,
                 photoURL: photoURL,
                 role: role
@@ -101,7 +101,27 @@ async function run() {
             const userData = await usersCollection.findOne({ email: email });
             res.send(userData);
         })
+        app.put('/user/update-address/:id', async (req, res) => {
+            const id = req.params.id;
+            const address = req.body;
+            console.log('PUT API HIT...!!!  the data is : ', id, address);
+            const filter = {
+                _id: new ObjectId(id)
+            }
+            const options = { upsert: true }
+            const updateDoc = {
+                $set: {
+                    address: address
+                },
+            };
 
+            const userUpdate = await usersCollection.findOneAndUpdate(filter, updateDoc, options);
+            const user = await usersCollection.findOne(filter)
+
+            res.send(user);
+
+            console.log('updated user.....', user);
+        })
 
         //////////////////////////////////////////////  PRODUCTS ////////////////////////////////////////////
 
@@ -191,7 +211,7 @@ async function run() {
 
         app.delete('/cart/:id', async (req, res) => {
             const id = req.params.id;
-            console.log('delete API hit......!!!', id );
+            console.log('delete API hit......!!!', id);
             const query = { _id: new ObjectId(id) }
             const result = await cart.deleteOne(query);
             res.send(result);
