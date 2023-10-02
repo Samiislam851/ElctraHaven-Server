@@ -72,6 +72,7 @@ async function run() {
         const products = database.collection("products")
         const usersCollection = database.collection("users")
         const cart = database.collection("cart")
+        const ordersCollection = database.collection("orders")
 
         ///////////////////////////////////////////// USERS /////////////////////////////////////////////////
         app.post('/users', async (req, res) => {
@@ -201,7 +202,7 @@ async function run() {
                 return res.status(404).json({ message: 'Cart item not found' })
             }
 
-            ////////////Update The Quantity////////////////////////
+
             cartItem.quantity = quantity;
 
             const result = await cart.updateOne(query, { $set: { quantity: quantity } })
@@ -209,12 +210,116 @@ async function run() {
             res.status(200).json({ message: 'quantity updated successfully', data: result })
         })
 
-        app.delete('/cart/:id', async (req, res) => {
+        app.delete('/cart/product/:id', async (req, res) => {
             const id = req.params.id;
             console.log('delete API hit......!!!', id);
             const query = { _id: new ObjectId(id) }
             const result = await cart.deleteOne(query);
             res.send(result);
+        })
+        app.delete('/cart/:email', async (req, res) => {
+            const email = req.params.email;
+            console.log('Cart delete API hit......!!!', email);
+            const query = { userEmail: email }
+            const result = await cart.deleteMany(query);
+            res.send(result);
+        })
+
+
+        //////////////////////////// ORDERS ////////////////////////////
+
+
+        app.get('/orders/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log('user id :', id);
+
+
+            const query = { userId: new ObjectId(id) };
+            const result = await ordersCollection.findOne(query);
+            res.send(result);
+
+
+
+
+        })
+
+
+
+
+        app.put('/orders/:id', async (req, res) => {
+            const userId = req.params.id
+            const products = req.body
+            const user = await usersCollection.findOne({ _id: new ObjectId(userId) })
+
+            const orderData = {
+                userId: user._id,
+                name: user.fname + " " + user.lname,
+                email: user.email,
+                orders: products
+            }
+
+
+
+            const query = { userId: new ObjectId(userId) }
+            const order = await ordersCollection.findOne(query);
+
+            if (order) {
+                const existingOrders = order.orders;
+
+                products.map(product => {
+                    existingOrders.push(product);
+                })
+                const query = { userId: new ObjectId(userId) }
+                const updateDoc = {
+                    $set: {
+                        orders: existingOrders,
+                    }
+                }
+
+                const options = { upsert: true };
+                const result = await ordersCollection.updateOne(query, updateDoc, options)
+                res.send(result);
+
+            } else {
+                const result = await ordersCollection.insertOne(orderData);
+                res.send(result);
+            }
+        })
+
+
+
+
+        app.put('/orders/cancel/:orderId/:userId', async (req, res) => {
+
+            const orderId = req.params.orderId;
+            const userId = req.params.userId;
+
+            const query = {
+                userId: new ObjectId(userId),
+                'orders.orderId': orderId
+            }
+
+            const update = {
+                $set : { 'orders.$.status' : 'Cancelled'}
+            }
+
+            const order = await ordersCollection.findOne()
+
+
+            // order.orders.map(item => {
+
+            //     if (item.orderId === orderId) {
+            //         console.log('orderStatus before', item.status);
+            //         item.status = 'Cancelled';
+            //         console.log('orderStatus after', item.status);
+            //     }
+            // })
+
+
+            const result = await ordersCollection.updateOne(query, update)
+            res.send(result);
+
+
         })
 
 
