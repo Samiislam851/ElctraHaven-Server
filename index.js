@@ -124,6 +124,20 @@ async function run() {
             console.log('updated user.....', user);
         })
 
+
+
+
+        //////////////////////////////////// USER LEVEL COUNT //////////////////////////////////
+
+
+        app.get('user-level/:email', async (req, res) => {
+
+            const email = req.params.email;
+
+            const orders = ordersCollection.findOne({ userEmail: email });
+
+        })
+
         //////////////////////////////////////////////  PRODUCTS ////////////////////////////////////////////
 
         app.get('/products', async (req, res) => {
@@ -163,7 +177,7 @@ async function run() {
 
         app.post('/cart', async (req, res) => {
             const { userEmail, productId } = req.body
-            // console.log('from cart post', userEmail, productId);
+            console.log('from cart post', userEmail, productId);
             const query = {
                 $and: [
                     { productId: productId },
@@ -185,10 +199,11 @@ async function run() {
 
         app.get('/cart/:email', async (req, res) => {
             const email = req.params.email
-            // console.log('the cart data..................................!', email);
+            console.log('the cart data..................................!', email);
             const query = { userEmail: email }
             const cursor = cart.find(query)
             const allCartProducts = await cursor.toArray()
+            // console.log(allCartProducts);
             res.send(allCartProducts);
         })
 
@@ -300,10 +315,10 @@ async function run() {
             }
 
             const update = {
-                $set : { 'orders.$.status' : 'Cancelled'}
+                $set: { 'orders.$.status': 'Cancelled' }
             }
 
-            const order = await ordersCollection.findOne()
+
 
 
             // order.orders.map(item => {
