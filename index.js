@@ -130,11 +130,91 @@ async function run() {
         //////////////////////////////////// USER LEVEL COUNT //////////////////////////////////
 
 
-        app.get('user-level/:email', async (req, res) => {
+        app.get('/user-level/:email', async (req, res) => {
 
             const email = req.params.email;
 
-            const orders = ordersCollection.findOne({ userEmail: email });
+            const order = await ordersCollection.findOne({ email: email });
+
+
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth() + 1;
+
+
+            const totalOrdersOfThisMonth = [];
+            console.log('email...........................................',email);
+
+            for (x of order?.orders) {
+
+                console.log('x...............', x);
+                const dateString = x.orderDate;
+                const orderDate = new Date(dateString);
+                const month = orderDate.getMonth() + 1;
+                if (month == currentMonth) {
+                    totalOrdersOfThisMonth.push(x)
+                }
+            }
+
+
+            // console.log('orders of this month ', totalOrdersOfThisMonth);
+
+
+
+
+
+            // Create a Set to store unique orderDate values
+            const uniqueOrderDates = new Set();
+
+            // Create an array to store objects with unique orderDate values
+            const uniqueOrderObjects = [];
+
+
+
+
+            //keeping count of price of orders
+
+            let totalPrice = 0;
+
+            // Iterate through the array of orders
+            totalOrdersOfThisMonth.forEach((order) => {
+                // console.log('payment status for this order is : ', order.paymentStatus);
+
+
+
+                //TODO : code the front-end to make the paymentStatus dynamic for successful payment and get the result and uncomment  the if condition bellow
+
+
+                // if (order.paymentStatus == 'paid') {
+                const orderDate = order.orderDate;
+
+                // If the orderDate is not in the Set, it's unique, so add it to the Set and push the object to the result array
+                if (!uniqueOrderDates.has(orderDate)) {
+                    uniqueOrderDates.add(orderDate);
+                    uniqueOrderObjects.push(order);
+                }
+
+                console.log('price of order.... ', order.totalPrice, 'totalPrice = ', totalPrice);
+                totalPrice += order.totalPrice
+            }
+                // }
+            );
+
+            const ordersOfThisMonth = uniqueOrderObjects.length;
+            console.log(ordersOfThisMonth, 'orders..... this month', 'and total price', totalPrice);
+            let userLevel = 1;
+
+            if (ordersOfThisMonth >= 10 && ordersOfThisMonth < 20 && totalPrice >= 1000000 && totalPrice < 2000000) {
+                userLevel = 2
+
+
+            } else if (ordersOfThisMonth >= 20 && ordersOfThisMonth < 30 && totalPrice >= 2000000 && totalPrice < 3000000) {
+                userLevel = 3
+            } else if (ordersOfThisMonth >= 30 && totalPrice > 3000000) {
+                userLevel = 4
+            }
+            console.log('user Level ', userLevel);
+
+            res.send({userLevel: userLevel})
 
         })
 
@@ -336,6 +416,49 @@ async function run() {
 
 
         })
+
+/////////////////////////////////////////// SEARCH ///////////////////////////////////////////
+
+
+
+
+
+
+
+app.get('/search', async (req,res)=>{
+    const {searchTerm} = req.query;
+    console.log('search Term = ', searchTerm);
+
+    
+
+
+    try {
+        const query = { $or: [
+               {brand :  { $regex: searchTerm, $options: "i" }},
+               {modelNumber : { $regex: searchTerm, $options: "i" }},
+               {type : { $regex: searchTerm, $options: "i" }},
+        ] };
+
+
+
+
+
+        const cursor =  products.find(query);
+        const result = await cursor.toArray();
+        console.log('result :  ', result);
+        res.send(result);
+      } catch (error) {
+        console.error('Error executing search query:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+
+
+
+    
+
+})
+
+
 
 
 
