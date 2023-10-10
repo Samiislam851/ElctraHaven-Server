@@ -369,7 +369,7 @@ async function run() {
 
 
         app.delete('/products/:id', async (req, res) => {
-            const id = req.params.id;
+            const id = req.params.id
             console.log('delete API hit......!!!', id);
             const query = { _id: new ObjectId(id) }
             const result = await products.deleteOne(query);
