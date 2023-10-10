@@ -10,7 +10,11 @@
     "dateOfApproval": "2023-08-15",
     "type": "solar panel",
     "image": "https://www.zeronetechbd.com/uploads/product/main-image837OLWAzE7xCP1626352709.jpg",
-    "price": 300
+    "price": 300,
+    "quantity": 1,
+    "AdminName": "Your Admin Name",
+    "AdminEmail": "admin@example.com",
+    "currentDateAndTime": "2023-10-10T00:00:00.000Z"
   },
   {
     "id": 2,
@@ -23,7 +27,11 @@
     "dateOfApproval": "2023-08-20",
     "type": "inverter",
     "image": "https://www.zeronetechbd.com/uploads/product/main-image837OLWAzE7xCP1626352709.jpg",
-    "price": 500
+    "price": 500,
+    "quantity": 7,
+    "AdminName": "Your Admin Name",
+    "AdminEmail": "admin@example.com",
+    "currentDateAndTime": "2023-10-10T00:00:00.000Z"
   },
   {
     "id": 3,
@@ -36,7 +44,11 @@
     "dateOfApproval": "2023-08-10",
     "type": "solar panel",
     "image": "https://www.zeronetechbd.com/uploads/product/main-image837OLWAzE7xCP1626352709.jpg",
-    "price": 250
+    "price": 250,
+    "quantity": 8,
+    "AdminName": "Your Admin Name",
+    "AdminEmail": "admin@example.com",
+    "currentDateAndTime": "2023-10-10T00:00:00.000Z"
   },
   {
     "id": 4,
@@ -49,7 +61,11 @@
     "dateOfApproval": "2023-08-25",
     "type": "inverter",
     "image": "https://www.zeronetechbd.com/uploads/product/main-image837OLWAzE7xCP1626352709.jpg",
-    "price": 350
+    "price": 350,
+    "quantity": 7,
+    "AdminName": "Your Admin Name",
+    "AdminEmail": "admin@example.com",
+    "currentDateAndTime": "2023-10-10T00:00:00.000Z"
   },
   {
     "id": 5,
@@ -62,7 +78,11 @@
     "dateOfApproval": "2023-08-12",
     "type": "solar panel",
     "image": "https://www.zeronetechbd.com/uploads/product/main-image837OLWAzE7xCP1626352709.jpg",
-    "price": 280
+    "price": 280,
+    "quantity": 5,
+    "AdminName": "Your Admin Name",
+    "AdminEmail": "admin@example.com",
+    "currentDateAndTime": "2023-10-10T00:00:00.000Z"
   },
   {
     "id": 6,
@@ -75,7 +95,11 @@
     "dateOfApproval": "2023-08-28",
     "type": "inverter",
     "image": "https://www.zeronetechbd.com/uploads/product/main-image837OLWAzE7xCP1626352709.jpg",
-    "price": 600
+    "price": 600,
+    "quantity": 8,
+    "AdminName": "Your Admin Name",
+    "AdminEmail": "admin@example.com",
+    "currentDateAndTime": "2023-10-10T00:00:00.000Z"
   },
   {
     "id": 7,
@@ -88,7 +112,11 @@
     "dateOfApproval": "2023-08-18",
     "type": "solar panel",
     "image": "https://www.zeronetechbd.com/uploads/product/main-image837OLWAzE7xCP1626352709.jpg",
-    "price": 350
+    "price": 350,
+    "quantity": 10,
+    "AdminName": "Your Admin Name",
+    "AdminEmail": "admin@example.com",
+    "currentDateAndTime": "2023-10-10T00:00:00.000Z"
   },
   {
     "id": 8,
@@ -101,7 +129,11 @@
     "dateOfApproval": "2023-08-30",
     "type": "inverter",
     "image": "https://www.zeronetechbd.com/uploads/product/main-image837OLWAzE7xCP1626352709.jpg",
-    "price": 800
+    "price": 800,
+    "quantity": 2,
+    "AdminName": "Your Admin Name",
+    "AdminEmail": "admin@example.com",
+    "currentDateAndTime": "2023-10-10T00:00:00.000Z"
   },
   {
     "id": 9,
@@ -114,7 +146,11 @@
     "dateOfApproval": "2023-08-22",
     "type": "solar panel",
     "image": "https://www.zeronetechbd.com/uploads/product/main-image837OLWAzE7xCP1626352709.jpg",
-    "price": 300
+    "price": 300,
+    "quantity": 10,
+    "AdminName": "Your Admin Name",
+    "AdminEmail": "admin@example.com",
+    "currentDateAndTime": "2023-10-10T00:00:00.000Z"
   },
   {
     "id": 10,
@@ -127,6 +163,10 @@
     "dateOfApproval": "2023-08-31",
     "type": "inverter",
     "image": "https://www.zeronetechbd.com/uploads/product/main-image837OLWAzE7xCP1626352709.jpg",
-    "price": 450
+    "price": 450,
+    "quantity": 4,
+    "AdminName": "Your Admin Name",
+    "AdminEmail": "admin@example.com",
+    "currentDateAndTime": "2023-10-10T00:00:00.000Z"
   }
 ]

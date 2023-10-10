@@ -70,10 +70,11 @@ async function run() {
 
         const database = client.db("ElectraHaven")
         const products = database.collection("products")
+        // products.drop();
         const usersCollection = database.collection("users")
         const cart = database.collection("cart")
         const ordersCollection = database.collection("orders")
-
+        // ordersCollection.drop();
         ///////////////////////////////////////////// USERS /////////////////////////////////////////////////
         app.post('/users', async (req, res) => {
             const { fname, lname, phone, email, photoURL, role } = req.body;
@@ -92,11 +93,16 @@ async function run() {
             if (existingUser) {
                 return res.send({ message: 'user already exists', data: existingUser })
             }
-
             const result = await usersCollection.insertOne(user);
             res.send(result);
         });
 
+        app.get('/users', async (req, res) => {
+            const cursor = usersCollection.find();
+            const users = await cursor.toArray()
+            console.log('all users', users);
+            res.send(users);
+        })
         app.get('/users/:email', async (req, res) => {
             const email = req.params.email;
             const userData = await usersCollection.findOne({ email: email });
@@ -124,10 +130,49 @@ async function run() {
             console.log('updated user.....', user);
         })
 
+        app.patch('/users/admin/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log(id);
+            const filter = { _id: new ObjectId(id) };
+            const options = {upsert : true}
+            const updateDoc = {
+                $set: {
+                    role: 'admin',
+                    grade: '2'
+                },
+            };
+
+            const result = await usersCollection.updateOne(filter, updateDoc);
+            res.send(result);
+
+        })
+        app.patch('/users/customer/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log(id);
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    role: 'customer',
+                    grade: '0'
+                },
+            };
+
+            const result = await usersCollection.updateOne(filter, updateDoc);
+            res.send(result);
+
+        })
+
+        app.delete('/users/delete/:id', async (req, res) => {
+            const id = req.params.id
+            const query = {_id : new ObjectId(id)};
+            const result = usersCollection.deleteOne(query);
+            res.send(result)
 
 
+        })
 
-        //////////////////////////////////// USER LEVEL COUNT //////////////////////////////////
+
+        ////////////////////////////////////// USER LEVEL COUNT //////////////////////////////////////
 
 
         app.get('/user-level/:email', async (req, res) => {
@@ -142,18 +187,21 @@ async function run() {
 
 
             const totalOrdersOfThisMonth = [];
-            console.log('email...........................................',email);
+            if (order?.orders) {
+                for (x of order?.orders) {
 
-            for (x of order?.orders) {
-
-                console.log('x...............', x);
-                const dateString = x.orderDate;
-                const orderDate = new Date(dateString);
-                const month = orderDate.getMonth() + 1;
-                if (month == currentMonth) {
-                    totalOrdersOfThisMonth.push(x)
+                    console.log('x...............', x);
+                    const dateString = x.orderDate;
+                    const orderDate = new Date(dateString);
+                    const month = orderDate.getMonth() + 1;
+                    if (month == currentMonth) {
+                        totalOrdersOfThisMonth.push(x)
+                    }
                 }
+
             }
+
+
 
 
             // console.log('orders of this month ', totalOrdersOfThisMonth);
@@ -214,7 +262,7 @@ async function run() {
             }
             console.log('user Level ', userLevel);
 
-            res.send({userLevel: userLevel})
+            res.send({ userLevel: userLevel })
 
         })
 
@@ -228,7 +276,17 @@ async function run() {
 
         })
 
-        app.get('/products/inverter', async (req, res) => {
+
+        app.post('/addproduct', async (req, res) => {
+            const dataInserted = req.body;
+
+
+            const result = await products.insertOne(dataInserted);
+            res.send(result);
+        })
+
+
+        app.get('/inverters/all', async (req, res) => {
             const query = { type: 'inverter' };
             let cursor = products.find(query);
             let result = await cursor.toArray();
@@ -237,18 +295,84 @@ async function run() {
         })
         app.get('/products/:id', async (req, res) => {
             const id = req.params.id
-            // console.log('here id', id);
+         
+            if (!ObjectId.isValid(id)) {
+                return res.status(400).json({ error: 'Invalid ObjectId' });
+              }
             const query = { _id: new ObjectId(id) };
             let result = await products.findOne(query);
             // console.log('the cart data....................!', result);
             res.send(result);
         })
 
-        app.get('/products/solar-panel', async (req, res) => {
+        app.get('/solar-panels/all', async (req, res) => {
+
+            console.log('solarpanel api hitted .................');
             const query = { type: 'solar panel' };
             let cursor = products.find(query);
             let result = await cursor.toArray();
 
+            res.send(result);
+        })
+
+
+
+
+
+        app.put('/update-product/:productId', async (req, res) => {
+            const productId = req.params.productId;
+            const updatedProduct = req.body;
+            const query = { _id: new ObjectId(productId) };
+
+
+
+            const existingProduct = await products.findOne(query)
+            console.log('existing product', existingProduct);
+            console.log('updated product', updatedProduct);
+
+            const updateData = {
+                $set: {}
+            };
+            for (const key in updatedProduct) {
+
+
+                if (existingProduct[key] !== updatedProduct[key] && key != "_id") {
+                    updateData.$set[key] = updatedProduct[key];
+                }
+
+
+            }
+
+
+
+
+            console.log('set update after set', updateData);
+
+
+            try {
+
+                const updatedProduct = await products.updateOne(
+                    query, updateData
+                );
+
+
+                console.log(updatedProduct);
+                res.status(200).json(updatedProduct);
+            } catch (error) {
+                console.error('Error updating product:', error);
+                res.status(500).json({ message: 'Internal server error' });
+            }
+        });
+
+
+
+
+
+        app.delete('/products/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log('delete API hit......!!!', id);
+            const query = { _id: new ObjectId(id) }
+            const result = await products.deleteOne(query);
             res.send(result);
         })
 
@@ -417,7 +541,7 @@ async function run() {
 
         })
 
-/////////////////////////////////////////// SEARCH ///////////////////////////////////////////
+        /////////////////////////////////////////// SEARCH ///////////////////////////////////////////
 
 
 
@@ -425,38 +549,40 @@ async function run() {
 
 
 
-app.get('/search', async (req,res)=>{
-    const {searchTerm} = req.query;
-    console.log('search Term = ', searchTerm);
-
-    
-
-
-    try {
-        const query = { $or: [
-               {brand :  { $regex: searchTerm, $options: "i" }},
-               {modelNumber : { $regex: searchTerm, $options: "i" }},
-               {type : { $regex: searchTerm, $options: "i" }},
-        ] };
+        app.get('/search', async (req, res) => {
+            const { searchTerm } = req.query;
+            console.log('search Term = ', searchTerm);
 
 
 
 
-
-        const cursor =  products.find(query);
-        const result = await cursor.toArray();
-        console.log('result :  ', result);
-        res.send(result);
-      } catch (error) {
-        console.error('Error executing search query:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-      }
-
+            try {
+                const query = {
+                    $or: [
+                        { brand: { $regex: searchTerm, $options: "i" } },
+                        { modelNumber: { $regex: searchTerm, $options: "i" } },
+                        { type: { $regex: searchTerm, $options: "i" } },
+                    ]
+                };
 
 
-    
 
-})
+
+
+                const cursor = products.find(query);
+                const result = await cursor.toArray();
+                console.log('result :  ', result);
+                res.send(result);
+            } catch (error) {
+                console.error('Error executing search query:', error);
+                res.status(500).json({ error: 'Internal Server Error' });
+            }
+
+
+
+
+
+        })
 
 
 
