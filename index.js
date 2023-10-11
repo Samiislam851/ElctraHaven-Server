@@ -1,4 +1,5 @@
 const express = require('express')
+require('dotenv').config();
 const { ObjectId } = require('mongodb');
 const app = express()
 const cors = require('cors')
@@ -6,7 +7,9 @@ const bodyParser = require('body-parser');
 const port = 5000
 const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion } = require('mongodb');
-const uri = "mongodb+srv://samisiam851:IzxHVRpaCCZiyoO9@cluster0.lkouiuy.mongodb.net/?retryWrites=true&w=majority";
+const mongoId = process.env.MONGO_ID
+const mongoPass = process.env.MONGO_PASSWORD
+const uri = `mongodb+srv://${mongoId}:${mongoPass}@cluster0.lkouiuy.mongodb.net/?retryWrites=true&w=majority`;
 
 ////////////////////////////////////////// JWT verification //////////////////////////////////////////////////
 const verifyJWT = (req, res, next) => {
