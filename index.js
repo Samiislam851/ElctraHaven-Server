@@ -28,7 +28,7 @@ const verifyJWT = (req, res, next) => {
     // bearer token
     const token = authorization.split(' ')[1];
 
-    jwt.verify(token, 'dafea91334ce03e49042a919e62de4bd212fc5d3c5c1e08656122279bb16bbadca7be7506441ff2e209f59235ab8dc4eb21ee5ae96d9816168c68e22ed9247d9', (err, decoded) => {
+    jwt?.verify(token, 'dafea91334ce03e49042a919e62de4bd212fc5d3c5c1e08656122279bb16bbadca7be7506441ff2e209f59235ab8dc4eb21ee5ae96d9816168c68e22ed9247d9', (err, decoded) => {
         if (err) {
             return res.status(401).send({ error: true, message: 'unauthorized access' })
         }
@@ -55,7 +55,7 @@ app.options("", cors(corsConfig))
 
 
 
-app.use(bodyParser.json());
+app.use(bodyParser?.json());
 
 
 
@@ -75,11 +75,11 @@ app.get('/', (req, res) => {
 async function run() {
     try {
 
-        await client.connect();
-        await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        await client?.connect();
+        await client?.db("admin").command({ ping: 1 });
+        console.log("Pinged your deployment?. You successfully connected to MongoDB!");
 
-        const database = client.db("ElectraHaven")
+        const database = client?.db("ElectraHaven")
         const products = database.collection("products")
         // products.drop();
         const usersCollection = database.collection("users")
@@ -98,7 +98,7 @@ async function run() {
                 role: role
             }
 
-            const query = { email: user.email }
+            const query = { email: user?.email }
             const existingUser = await usersCollection.findOne(query);
 
             if (existingUser) {
@@ -122,7 +122,7 @@ async function run() {
         app.put('/user/update-address/:id', async (req, res) => {
             const id = req.params.id;
             const address = req.body;
-            console.log('PUT API HIT...!!!  the data is : ', id, address);
+            console.log('PUT API HIT?...!!!  the data is : ', id, address);
             const filter = {
                 _id: new ObjectId(id)
             }
@@ -138,14 +138,14 @@ async function run() {
 
             res.send(user);
 
-            console.log('updated user.....', user);
+            console.log('updated user?.....', user);
         })
 
         app.patch('/users/admin/:id', async (req, res) => {
             const id = req.params.id;
             console.log(id);
             const filter = { _id: new ObjectId(id) };
-            const options = {upsert : true}
+            const options = { upsert: true }
             const updateDoc = {
                 $set: {
                     role: 'admin',
@@ -175,7 +175,7 @@ async function run() {
 
         app.delete('/users/delete/:id', async (req, res) => {
             const id = req.params.id
-            const query = {_id : new ObjectId(id)};
+            const query = { _id: new ObjectId(id) };
             const result = usersCollection.deleteOne(query);
             res.send(result)
 
@@ -236,15 +236,15 @@ async function run() {
 
             // Iterate through the array of orders
             totalOrdersOfThisMonth.forEach((order) => {
-                // console.log('payment status for this order is : ', order.paymentStatus);
+                // console.log('payment status for this order is : ', order?.paymentStatus);
 
 
 
                 //TODO : code the front-end to make the paymentStatus dynamic for successful payment and get the result and uncomment  the if condition bellow
 
 
-                // if (order.paymentStatus == 'paid') {
-                const orderDate = order.orderDate;
+                // if (order?.paymentStatus == 'paid') {
+                const orderDate = order?.orderDate;
 
                 // If the orderDate is not in the Set, it's unique, so add it to the Set and push the object to the result array
                 if (!uniqueOrderDates.has(orderDate)) {
@@ -252,8 +252,8 @@ async function run() {
                     uniqueOrderObjects.push(order);
                 }
 
-                console.log('price of order.... ', order.totalPrice, 'totalPrice = ', totalPrice);
-                totalPrice += order.totalPrice
+                console.log('price of order?.... ', order?.totalPrice, 'totalPrice = ', totalPrice);
+                totalPrice += order?.totalPrice
             }
                 // }
             );
@@ -306,10 +306,10 @@ async function run() {
         })
         app.get('/products/:id', async (req, res) => {
             const id = req.params.id
-         
+
             if (!ObjectId.isValid(id)) {
                 return res.status(400).json({ error: 'Invalid ObjectId' });
-              }
+            }
             const query = { _id: new ObjectId(id) };
             let result = await products.findOne(query);
             // console.log('the cart data....................!', result);
@@ -381,7 +381,7 @@ async function run() {
 
         app.delete('/products/:id', async (req, res) => {
             const id = req.params.id
-            console.log('delete API hit......!!!', id);
+            console.log('delete API hit?......!!!', id);
             const query = { _id: new ObjectId(id) }
             const result = await products.deleteOne(query);
             res.send(result);
@@ -400,11 +400,11 @@ async function run() {
                 ]
             }
             let productAlreadyExists = null;
-            productAlreadyExists = await cart.findOne(query);
+            productAlreadyExists = await cart?.findOne(query);
             if (productAlreadyExists) {
                 res.send({ message: 'Already this product is in your cart', acknowledged: false })
             } else {
-                const result = await cart.insertOne(req.body);
+                const result = await cart?.insertOne(req.body);
                 res.send(result);
             }
 
@@ -414,9 +414,9 @@ async function run() {
 
         app.get('/cart/:email', async (req, res) => {
             const email = req.params.email
-    
+
             const query = { userEmail: email }
-            const cursor = cart.find(query)
+            const cursor = cart?.find(query)
             const allCartProducts = await cursor.toArray()
             // console.log(allCartProducts);
             res.send(allCartProducts);
@@ -427,7 +427,7 @@ async function run() {
             const quantity = req.body.newQuantity
             console.log('product Id and quantity', id, quantity);
             const query = { productId: id };
-            const cartItem = await cart.findOne(query);
+            const cartItem = await cart?.findOne(query);
             if (!cartItem) {
                 return res.status(404).json({ message: 'Cart item not found' })
             }
@@ -435,23 +435,23 @@ async function run() {
 
             cartItem.quantity = quantity;
 
-            const result = await cart.updateOne(query, { $set: { quantity: quantity } })
+            const result = await cart?.updateOne(query, { $set: { quantity: quantity } })
 
             res.status(200).json({ message: 'quantity updated successfully', data: result })
         })
 
         app.delete('/cart/product/:id', async (req, res) => {
             const id = req.params.id;
-            console.log('delete API hit......!!!', id);
+            console.log('delete API hit?......!!!', id);
             const query = { _id: new ObjectId(id) }
-            const result = await cart.deleteOne(query);
+            const result = await cart?.deleteOne(query);
             res.send(result);
         })
         app.delete('/cart/:email', async (req, res) => {
             const email = req.params.email;
-            console.log('Cart delete API hit......!!!', email);
+            console.log('Cart delete API hit?......!!!', email);
             const query = { userEmail: email }
-            const result = await cart.deleteMany(query);
+            const result = await cart?.deleteMany(query);
             res.send(result);
         })
 
@@ -482,9 +482,9 @@ async function run() {
             const user = await usersCollection.findOne({ _id: new ObjectId(userId) })
 
             const orderData = {
-                userId: user._id,
-                name: user.fname + " " + user.lname,
-                email: user.email,
+                userId: user?._id,
+                name: user?.fname + " " + user?.lname,
+                email: user?.email,
                 orders: products
             }
 
@@ -494,7 +494,7 @@ async function run() {
             const order = await ordersCollection.findOne(query);
 
             if (order) {
-                const existingOrders = order.orders;
+                const existingOrders = order?.orders;
 
                 products.map(product => {
                     existingOrders.push(product);
@@ -536,7 +536,7 @@ async function run() {
 
 
 
-            // order.orders.map(item => {
+            // order?.orders.map(item => {
 
             //     if (item.orderId === orderId) {
             //         console.log('orderStatus before', item.status);
@@ -596,68 +596,95 @@ async function run() {
         })
 
 
-///////////////////////////////////////////////// PAYMENT GATEWAY ////////////////////////////////////
+        ///////////////////////////////////////////////// PAYMENT GATEWAY ////////////////////////////////////
 
 
-app.post('/payment', async (req,res)=> {
+        app.post('/payment', async (req, res) => {
 
-  
-const transactionId = new ObjectId().toString();
-const bodyData = req.body;
-const address = bodyData.userMongoData.address;
-const product = bodyData.product;
-const customer = bodyData.userMongoData
-const customerOrder = await ordersCollection.findOne({email : customer.email })
 
-const order = customerOrder.orders.find(order=> order.orderId == bodyData.orderId )
-// console.log(order);
+            const transactionId = new ObjectId().toString();
+            const bodyData = req.body;
+            const address = bodyData.userMongoData.address;
+            const product = bodyData.product;
+            const customer = bodyData.userMongoData
+            const customerOrder = await ordersCollection.findOne({ email: customer?.email })
 
-    const data = {
-        total_amount: order.totalPrice,
-        currency: 'BDT',
-        tran_id: transactionId, // use unique tran_id for each api call
-        success_url: 'http://localhost:3030/success',
-        fail_url: 'http://localhost:3030/fail',
-        cancel_url: 'http://localhost:3030/cancel',
-        ipn_url: 'http://localhost:3030/ipn',
-        shipping_method: 'Courier',
-        product_name: product.modelNumber,
-        product_category: product.type,
-        product_profile: 'electrical',
-        cus_name: customer.fname ,
-        cus_email: customer.email,
-        cus_add1: address.division,
-        cus_add2: address.district,
-        cus_city: address.district,
-        cus_state: '',
-        cus_postcode: address.postalCode,
-        cus_country: 'Bangladesh',
-        cus_phone: address.phone,
-        cus_fax: '',
-        ship_name: address.fullName,
-        ship_add1: address.division +", "+address.district+", "+address.subDistrict+", "+address.house+", "+address.street+", "+address.landmark,
-        ship_add2: '',
-        ship_city: '',
-        ship_state: '',
-        ship_postcode: address.postalCode,
-        ship_country: 'Bangladesh',
-    };
+            const order = customerOrder.orders.find(e => e.orderId == bodyData.orderId)
+            console.log('The order..', order);
 
-    // console.log(data);
-    const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live)
-    sslcz.init(data).then(apiResponse => {
-        // Redirect the user to payment gateway
-        let GatewayPageURL = apiResponse.GatewayPageURL
-       
-        // res.redirect(GatewayPageURL)
-        console.log('Redirecting to: ', GatewayPageURL)
-    });
-})
+            const data = {
+                total_amount: order.totalPrice,
+                currency: 'BDT',
+                tran_id: transactionId, // use unique tran_id for each api call
+                success_url: `http://localhost:5000/payment/success/${transactionId}`,
+                fail_url: 'http://localhost:3030/fail',
+                cancel_url: 'http://localhost:3030/cancel',
+                ipn_url: 'http://localhost:3030/ipn',
+                shipping_method: 'Courier',
+                product_name: product.modelNumber,
+                product_category: product.type,
+                product_profile: 'electrical',
+                cus_name: customer.fname,
+                cus_email: customer.email,
+                cus_add1: address.division,
+                cus_add2: address.district,
+                cus_city: address.district,
+                cus_state: 'a',
+                cus_postcode: address.postalCode,
+                cus_country: 'Bangladesh',
+                cus_phone: address.phone,
+                cus_fax: 'a',
+                ship_name: address.fullName,
+                ship_add1: address.division + ", " + address.district + ", " + address.subDistrict + ", " + address.house + ", " + address.street + ", " + address.landmark,
+                ship_add2: 'a',
+                ship_city: 'a',
+                ship_state: 'a',
+                ship_postcode: address.postalCode,
+                ship_country: 'Bangladesh',
+            };
+
+            console.log(store_id, store_passwd, is_live);
+            const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live)
+            sslcz.init(data).then(apiResponse => {
+                // Redirect the user to payment gateway
+                let GatewayPageURL = apiResponse.GatewayPageURL
+
+                res.send({ url: GatewayPageURL })
+                console.log('Redirecting to: ', GatewayPageURL)
+            });
+
+
+            app.post('/payment/success/:transactionId', async (req, res) => {
+                const tranId = req.params.transactionId;
+                order.paymentStatus = 'paid'
+                order.paymentMethod = 'online'
+                order.transactionId = tranId;
+
+                console.log('updated order....', order);
+                console.log('updated customer Orders ....', customerOrder.orders);
+
+
+                const result = await ordersCollection.updateOne(
+                    { email: customer?.email },
+                    {
+                        $set: {
+                            orders: customerOrder.orders
+                        }
+                    }
+
+
+                )
+                if(result.modifiedCount>0){
+                    res.redirect(`http://localhost:5173/payment/success/${tranId}`)
+                }
+               
+            })
+        })
 
 
     } finally {
 
-        //   await client.close();
+        //   await client?.close();
     }
 }
 
