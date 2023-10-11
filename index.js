@@ -9,6 +9,14 @@ const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const mongoId = process.env.MONGO_ID
 const mongoPass = process.env.MONGO_PASSWORD
+const sslcStoreId = process.env.SSLC_STORE_ID
+const sslcApiKey = process.env.SSLC_SECRET_KEY
+
+const SSLCommerzPayment = require('sslcommerz-lts')
+const store_id = sslcStoreId
+const store_passwd = sslcApiKey
+const is_live = false //true for live, false for sandbox
+
 const uri = `mongodb+srv://${mongoId}:${mongoPass}@cluster0.lkouiuy.mongodb.net/?retryWrites=true&w=majority`;
 
 ////////////////////////////////////////// JWT verification //////////////////////////////////////////////////
@@ -406,7 +414,7 @@ async function run() {
 
         app.get('/cart/:email', async (req, res) => {
             const email = req.params.email
-            console.log('the cart data..................................!', email);
+    
             const query = { userEmail: email }
             const cursor = cart.find(query)
             const allCartProducts = await cursor.toArray()
@@ -588,7 +596,63 @@ async function run() {
         })
 
 
+///////////////////////////////////////////////// PAYMENT GATEWAY ////////////////////////////////////
 
+
+app.post('/payment', async (req,res)=> {
+
+  
+const transactionId = new ObjectId().toString();
+const bodyData = req.body;
+const address = bodyData.userMongoData.address;
+const product = bodyData.product;
+const customer = bodyData.userMongoData
+const customerOrder = await ordersCollection.findOne({email : customer.email })
+
+const order = customerOrder.orders.find(order=> order.orderId == bodyData.orderId )
+// console.log(order);
+
+    const data = {
+        total_amount: order.totalPrice,
+        currency: 'BDT',
+        tran_id: transactionId, // use unique tran_id for each api call
+        success_url: 'http://localhost:3030/success',
+        fail_url: 'http://localhost:3030/fail',
+        cancel_url: 'http://localhost:3030/cancel',
+        ipn_url: 'http://localhost:3030/ipn',
+        shipping_method: 'Courier',
+        product_name: product.modelNumber,
+        product_category: product.type,
+        product_profile: 'electrical',
+        cus_name: customer.fname ,
+        cus_email: customer.email,
+        cus_add1: address.division,
+        cus_add2: address.district,
+        cus_city: address.district,
+        cus_state: '',
+        cus_postcode: address.postalCode,
+        cus_country: 'Bangladesh',
+        cus_phone: address.phone,
+        cus_fax: '',
+        ship_name: address.fullName,
+        ship_add1: address.division +", "+address.district+", "+address.subDistrict+", "+address.house+", "+address.street+", "+address.landmark,
+        ship_add2: '',
+        ship_city: '',
+        ship_state: '',
+        ship_postcode: address.postalCode,
+        ship_country: 'Bangladesh',
+    };
+
+    // console.log(data);
+    const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live)
+    sslcz.init(data).then(apiResponse => {
+        // Redirect the user to payment gateway
+        let GatewayPageURL = apiResponse.GatewayPageURL
+       
+        // res.redirect(GatewayPageURL)
+        console.log('Redirecting to: ', GatewayPageURL)
+    });
+})
 
 
     } finally {
