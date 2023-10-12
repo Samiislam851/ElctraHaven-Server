@@ -774,9 +774,10 @@ async function run() {
 
 ///////////////////////////////////////Custom Payment//////////////////////////////
 
-app.put(`payment/mobile-banking/:id`,async (req,res)=>{
+app.put(`/payment/mobile-banking/:id`,async (req,res)=>{
 const orderId = req.params.id
-const {}
+const Data = req.body
+console.log('api hit......1',orderId, Data);
 } )
 
 
