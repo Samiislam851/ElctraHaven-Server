@@ -119,6 +119,18 @@ async function run() {
             const userData = await usersCollection.findOne({ email: email });
             res.send(userData);
         })
+        app.get('/adminNumber', async (req, res) => {
+      
+            const user = await usersCollection.findOne({
+                $and: [
+                 {role: 'admin'},
+                   { grade: '1'}
+                ]
+            });
+
+            console.log('admin ',user.bankingPhone);
+            res.send(user.bankingPhone);
+        })
         app.put('/user/update-address/:id', async (req, res) => {
             const id = req.params.id;
             const address = req.body;
@@ -609,6 +621,14 @@ async function run() {
             const customer = bodyData.userMongoData
             const customerOrder = await ordersCollection.findOne({ email: customer?.email })
 
+            const utcDate = new Date();
+            utcDate.setHours(utcDate.getHours() + 6);
+
+            const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+
+            const paymentDate = utcDate.toLocaleString('en-US', options)
+            console.log('current time........!', currentDate);
+
             const order = customerOrder.orders.find(e => e.orderId == bodyData.orderId)
             console.log('The order..', order);
 
@@ -659,7 +679,7 @@ async function run() {
                 order.paymentStatus = 'paid'
                 order.paymentMethod = 'online'
                 order.transactionId = tranId;
-
+                order.paymentDate = paymentDate;
                 console.log('updated order....', order);
                 console.log('updated customer Orders ....', customerOrder.orders);
 
@@ -743,14 +763,24 @@ async function run() {
         app.post('/payment/ipn/:transactionId', (req, res) => {
             // Get and process the IPN data from SSLCommerz
             const ipnData = req.body;
-            
+
             // Process the IPN data (e.g., update order status based on the IPN data)
             // You can access the payment details in the 'ipnData' object
             console.log('Received IPN notification. Transaction ID:', ipnData.tran_id);
-            
+
             // Send an empty response (200 OK) to acknowledge receipt of the IPN
             res.status(200).send('IPN received successfully');
-          });
+        });
+
+///////////////////////////////////////Custom Payment//////////////////////////////
+
+app.put(`payment/mobile-banking/:id`,async (req,res)=>{
+const orderId = req.params.id
+const {}
+} )
+
+
+
 
 
     } finally {
