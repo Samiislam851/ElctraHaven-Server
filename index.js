@@ -617,9 +617,9 @@ async function run() {
                 currency: 'BDT',
                 tran_id: transactionId, // use unique tran_id for each api call
                 success_url: `http://localhost:5000/payment/success/${transactionId}`,
-                fail_url: 'http://localhost:3030/fail',
-                cancel_url: 'http://localhost:3030/cancel',
-                ipn_url: 'http://localhost:3030/ipn',
+                fail_url: `http://localhost:5000/payment/failed/${transactionId}`,
+                cancel_url: `http://localhost:5000/payment/cancel/${transactionId}`,
+                ipn_url: `http://localhost:5000/payment/ipn/${transactionId}`,
                 shipping_method: 'Courier',
                 product_name: product.modelNumber,
                 product_category: product.type,
@@ -674,12 +674,83 @@ async function run() {
 
 
                 )
-                if(result.modifiedCount>0){
+                if (result.modifiedCount > 0) {
                     res.redirect(`http://localhost:5173/payment/success/${tranId}`)
                 }
-               
+
             })
+
+
+
+            app.post('/payment/failed/:transactionId', async (req, res) => {
+                const tranId = req.params.transactionId;
+
+                const newOrders = customerOrder.orders.filter(e => e.orderId != bodyData.orderId)
+
+                // Updating `customerOrder.orders` with the filtered array
+                customerOrder.orders = newOrders;
+
+
+
+
+                console.log('updated customer Orders ....', customerOrder.orders);
+
+
+                const result = await ordersCollection.updateOne(
+                    { email: customer?.email },
+                    {
+                        $set: {
+                            orders: customerOrder.orders
+                        }
+                    }
+
+
+                )
+                if (result.modifiedCount > 0) {
+                    res.redirect(`http://localhost:5173/payment/failed/${tranId}`)
+                }
+
+            })
+
+
+
+
+            app.post('/payment/cancel/:transactionId', async (req, res) => {
+                const tranId = req.params.transactionId;
+                const newOrders = customerOrder.orders.filter(e => e.orderId != bodyData.orderId)
+                // Updating `customerOrder.orders` with the filtered array
+                customerOrder.orders = newOrders;
+                console.log('updated customer Orders ....', customerOrder.orders);
+
+
+                const result = await ordersCollection.updateOne(
+                    { email: customer?.email },
+                    {
+                        $set: {
+                            orders: customerOrder.orders
+                        }
+                    })
+
+                res.redirect(`http://localhost:5173/payment/cancel/${tranId}`);
+            });
+
+
+
+
         })
+
+
+        app.post('/payment/ipn/:transactionId', (req, res) => {
+            // Get and process the IPN data from SSLCommerz
+            const ipnData = req.body;
+            
+            // Process the IPN data (e.g., update order status based on the IPN data)
+            // You can access the payment details in the 'ipnData' object
+            console.log('Received IPN notification. Transaction ID:', ipnData.tran_id);
+            
+            // Send an empty response (200 OK) to acknowledge receipt of the IPN
+            res.status(200).send('IPN received successfully');
+          });
 
 
     } finally {
