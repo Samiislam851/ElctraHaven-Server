@@ -849,6 +849,8 @@ async function run() {
             if (orders[0]) {
                 console.log(orders[0].filteredOrders);
                 res.send(orders[0].filteredOrders);
+            }else{
+                res.send(null)
             }
         })
         app.get('/orders/payment-status/paid', async (req, res) => {
@@ -874,6 +876,8 @@ async function run() {
             if (orders[0]) {
                 console.log(orders[0].filteredOrders);
                 res.send(orders[0].filteredOrders);
+            }else{
+                res.send(null)
             }
         })
         app.get('/orders/payment-status/requested', async (req, res) => {
@@ -899,6 +903,8 @@ async function run() {
             if (orders[0]) {
                 console.log(orders[0].filteredOrders);
                 res.send(orders[0].filteredOrders);
+            }else{
+                res.send(null)
             }
         })
         app.get('/orders/payment-status/cancelled', async (req, res) => {
@@ -924,6 +930,8 @@ async function run() {
             if (orders[0]) {
                 console.log(orders[0].filteredOrders);
                 res.send(orders[0].filteredOrders);
+            }else{
+                res.send(null)
             }
         })
 
@@ -949,6 +957,32 @@ async function run() {
 
             )
             res.send(result);
+
+        })
+        app.put('/paymentReceived/admin', async (req, res) => {
+            const orderData = req.body;
+
+
+            const allOrdersByUser = await ordersCollection.findOne({ email: orderData.userEmail })
+
+            const order = allOrdersByUser?.orders.find(e => e.orderId == orderData.orderId)
+if (order.status!="paid") {
+    order.status = 'paid';
+            order.paymentStatus = 'paid';
+            const result = await ordersCollection.updateOne(
+                { email: orderData.userEmail },
+                {
+                    $set: {
+                        orders: allOrdersByUser.orders
+                    }
+                }
+
+            )
+            res.send(result);
+}else{
+    res.send({message: 'Already updated as paid'})
+}
+            
 
         })
 
