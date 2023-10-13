@@ -542,7 +542,10 @@ async function run() {
             }
 
             const update = {
-                $set: { 'orders.$.status': 'Cancelled' }
+                $set: {
+                    'orders.$.status': 'Cancelled',
+                    'orders.$.paymentStatus': 'Cancelled'
+                  }
             }
 
 
@@ -785,42 +788,132 @@ async function run() {
 
 
 
-if(order.paymentServiceProvider){
-    console.log('payment service provider',order.paymentServiceProvider);
-    res.send({message :'Already payment is done. If there is any confusion with this. Kindly contact us through the contact section'})
-} else{
-    order['paymentServiceProvider'] = data.paymentServiceProvider;
-    order['transactionCount'] = data.transactionCount;
-    order['transactions'] = data.transactions;
-    order['transactionPhoneNumber'] = data.phoneNumber;
-    order['paymentDate'] = new Date().toString();
-    order.paymentStatus = 'requested';
-    order.paymentMethod = 'mobileBanking';
-    order.status = 'placed'
+            if (order.paymentServiceProvider) {
+                console.log('payment service provider', order.paymentServiceProvider);
+                res.send({ message: 'Already payment is done. If there is any confusion with this. Kindly contact us through the contact section' })
+            } else {
+                order['paymentServiceProvider'] = data.paymentServiceProvider;
+                order['transactionCount'] = data.transactionCount;
+                order['transactions'] = data.transactions;
+                order['transactionPhoneNumber'] = data.phoneNumber;
+                order['paymentDate'] = new Date().toString();
+                order.paymentStatus = 'requested';
+                order.paymentMethod = 'mobileBanking';
+                order.status = 'placed'
 
-    console.log('order after adding data', order);
+                console.log('order after adding data', order);
 
 
-    const result = await ordersCollection.updateOne(
-        { email: data.user.email },
-        {
-            $set: {
-                orders: userOrder.orders
+                const result = await ordersCollection.updateOne(
+                    { email: data.user.email },
+                    {
+                        $set: {
+                            orders: userOrder.orders
+                        }
+                    }
+
+                )
+
+                res.send(result);
+
             }
-        }
 
-    )
-  
-    res.send(result);
 
-}
-
-           
 
         })
 
 
+        ///////////////////////////////////////// ORDER TRACKING FOR ADMIN ////////////////////////////////
 
+
+        app.get('/orders/payment-status/pending', async (req, res) => {
+            console.log('api hit........................!!!!!!!!!!!!!');
+            const cursor = ordersCollection.aggregate([
+                {
+                    $unwind: "$orders" // Unwind the "orders" array
+                },
+                {
+                    $match: {
+                        "orders.paymentStatus": "pending" 
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        filteredOrders: { $push: "$orders" }
+                    }
+                }
+            ]);
+            const orders = await cursor.toArray();
+            console.log(orders[0].filteredOrders);
+           res.send(orders[0].filteredOrders);
+        })
+        app.get('/orders/payment-status/paid', async (req, res) => {
+            console.log('api hit........................!!!!!!!!!!!!!');
+            const cursor = ordersCollection.aggregate([
+                {
+                    $unwind: "$orders" // Unwind the "orders" array
+                },
+                {
+                    $match: {
+                        "orders.paymentStatus": "paid" 
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        filteredOrders: { $push: "$orders" }
+                    }
+                }
+            ]);
+            const orders = await cursor.toArray();
+            console.log(orders[0].filteredOrders);
+           res.send(orders[0].filteredOrders);
+        })
+        app.get('/orders/payment-status/requested', async (req, res) => {
+            console.log('api hit........................!!!!!!!!!!!!!');
+            const cursor = ordersCollection.aggregate([
+                {
+                    $unwind: "$orders" // Unwind the "orders" array
+                },
+                {
+                    $match: {
+                        "orders.paymentStatus": "requested" 
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        filteredOrders: { $push: "$orders" }
+                    }
+                }
+            ]);
+            const orders = await cursor.toArray();
+            console.log(orders[0].filteredOrders);
+           res.send(orders[0].filteredOrders);
+        })
+        app.get('/orders/payment-status/cancelled', async (req, res) => {
+            console.log('api hit........................!!!!!!!!!!!!!');
+            const cursor = ordersCollection.aggregate([
+                {
+                    $unwind: "$orders" // Unwind the "orders" array
+                },
+                {
+                    $match: {
+                        "orders.paymentStatus": "Cancelled" 
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        filteredOrders: { $push: "$orders" }
+                    }
+                }
+            ]);
+            const orders = await cursor.toArray();
+            console.log(orders[0].filteredOrders);
+           res.send(orders[0].filteredOrders);
+        })
 
 
     } finally {
