@@ -120,15 +120,15 @@ async function run() {
             res.send(userData);
         })
         app.get('/adminNumber', async (req, res) => {
-      
+
             const user = await usersCollection.findOne({
                 $and: [
-                 {role: 'admin'},
-                   { grade: '1'}
+                    { role: 'admin' },
+                    { grade: '1' }
                 ]
             });
 
-            console.log('admin ',user.bankingPhone);
+            console.log('admin ', user.bankingPhone);
             res.send(user.bankingPhone);
         })
         app.put('/user/update-address/:id', async (req, res) => {
@@ -772,13 +772,52 @@ async function run() {
             res.status(200).send('IPN received successfully');
         });
 
-///////////////////////////////////////Custom Payment//////////////////////////////
+        ///////////////////////////////////////Custom Payment//////////////////////////////
 
-app.put(`/payment/mobile-banking/:id`,async (req,res)=>{
-const orderId = req.params.id
-const Data = req.body
-console.log('api hit......1',orderId, Data);
-} )
+        app.put(`/payment/mobile-banking/:id`, async (req, res) => {
+            const orderId = req.params.id
+            const data = req.body
+
+
+            const userOrder = await ordersCollection.findOne({ email: data.user.email });
+            const order = userOrder.orders.find(order => order.orderId == orderId)
+            console.log(order);
+
+
+
+if(order.paymentServiceProvider){
+    console.log('payment service provider',order.paymentServiceProvider);
+    res.send({message :'Already payment is done. If there is any confusion with this. Kindly contact us through the contact section'})
+} else{
+    order['paymentServiceProvider'] = data.paymentServiceProvider;
+    order['transactionCount'] = data.transactionCount;
+    order['transactions'] = data.transactions;
+    order['transactionPhoneNumber'] = data.phoneNumber;
+    order['paymentDate'] = new Date().toString();
+    order.paymentStatus = 'requested';
+    order.paymentMethod = 'mobileBanking';
+    order.status = 'placed'
+
+    console.log('order after adding data', order);
+
+
+    const result = await ordersCollection.updateOne(
+        { email: data.user.email },
+        {
+            $set: {
+                orders: userOrder.orders
+            }
+        }
+
+    )
+  
+    res.send(result);
+
+}
+
+           
+
+        })
 
 
 
