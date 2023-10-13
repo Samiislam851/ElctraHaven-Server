@@ -545,7 +545,7 @@ async function run() {
                 $set: {
                     'orders.$.status': 'Cancelled',
                     'orders.$.paymentStatus': 'Cancelled'
-                  }
+                }
             }
 
 
@@ -834,7 +834,7 @@ async function run() {
                 },
                 {
                     $match: {
-                        "orders.paymentStatus": "pending" 
+                        "orders.paymentStatus": "pending"
                     }
                 },
                 {
@@ -845,8 +845,11 @@ async function run() {
                 }
             ]);
             const orders = await cursor.toArray();
-            console.log(orders[0].filteredOrders);
-           res.send(orders[0].filteredOrders);
+
+            if (orders[0]) {
+                console.log(orders[0].filteredOrders);
+                res.send(orders[0].filteredOrders);
+            }
         })
         app.get('/orders/payment-status/paid', async (req, res) => {
             console.log('api hit........................!!!!!!!!!!!!!');
@@ -856,7 +859,7 @@ async function run() {
                 },
                 {
                     $match: {
-                        "orders.paymentStatus": "paid" 
+                        "orders.paymentStatus": "paid"
                     }
                 },
                 {
@@ -867,8 +870,11 @@ async function run() {
                 }
             ]);
             const orders = await cursor.toArray();
-            console.log(orders[0].filteredOrders);
-           res.send(orders[0].filteredOrders);
+
+            if (orders[0]) {
+                console.log(orders[0].filteredOrders);
+                res.send(orders[0].filteredOrders);
+            }
         })
         app.get('/orders/payment-status/requested', async (req, res) => {
             console.log('api hit........................!!!!!!!!!!!!!');
@@ -878,7 +884,7 @@ async function run() {
                 },
                 {
                     $match: {
-                        "orders.paymentStatus": "requested" 
+                        "orders.paymentStatus": "requested"
                     }
                 },
                 {
@@ -889,8 +895,11 @@ async function run() {
                 }
             ]);
             const orders = await cursor.toArray();
-            console.log(orders[0].filteredOrders);
-           res.send(orders[0].filteredOrders);
+
+            if (orders[0]) {
+                console.log(orders[0].filteredOrders);
+                res.send(orders[0].filteredOrders);
+            }
         })
         app.get('/orders/payment-status/cancelled', async (req, res) => {
             console.log('api hit........................!!!!!!!!!!!!!');
@@ -900,7 +909,7 @@ async function run() {
                 },
                 {
                     $match: {
-                        "orders.paymentStatus": "Cancelled" 
+                        "orders.paymentStatus": "Cancelled"
                     }
                 },
                 {
@@ -911,9 +920,43 @@ async function run() {
                 }
             ]);
             const orders = await cursor.toArray();
-            console.log(orders[0].filteredOrders);
-           res.send(orders[0].filteredOrders);
+
+            if (orders[0]) {
+                console.log(orders[0].filteredOrders);
+                res.send(orders[0].filteredOrders);
+            }
         })
+
+
+
+        app.put('/cancelOrder/admin', async (req, res) => {
+            const orderData = req.body;
+
+
+            const allOrdersByUser = await ordersCollection.findOne({ email: orderData.userEmail })
+
+            const order = allOrdersByUser?.orders.find(e => e.orderId == orderData.orderId)
+
+            order.status = 'Cancelled';
+            order.paymentStatus = 'Cancelled';
+            const result = await ordersCollection.updateOne(
+                { email: orderData.userEmail },
+                {
+                    $set: {
+                        orders: allOrdersByUser.orders
+                    }
+                }
+
+            )
+            res.send(result);
+
+        })
+
+
+
+
+
+
 
 
     } finally {
