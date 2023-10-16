@@ -12,6 +12,11 @@ const mongoPass = process.env.MONGO_PASSWORD
 const sslcStoreId = process.env.SSLC_STORE_ID
 const sslcApiKey = process.env.SSLC_SECRET_KEY
 
+const pdfMake = require('pdfmake/build/pdfmake');
+const pdfFonts = require('pdfmake/build/vfs_fonts');
+pdfMake.vfs = pdfFonts.pdfMake.vfs;
+
+
 const SSLCommerzPayment = require('sslcommerz-lts')
 const store_id = sslcStoreId
 const store_passwd = sslcApiKey
@@ -493,7 +498,7 @@ async function run() {
             const products = req.body
             const user = await usersCollection.findOne({ _id: new ObjectId(userId) })
 
-            const orderData = {
+            const newOrderData = {
                 userId: user?._id,
                 name: user?.fname + " " + user?.lname,
                 email: user?.email,
@@ -523,7 +528,7 @@ async function run() {
                 res.send(result);
 
             } else {
-                const result = await ordersCollection.insertOne(orderData);
+                const result = await ordersCollection.insertOne(newOrderData);
                 res.send(result);
             }
         })
@@ -553,7 +558,7 @@ async function run() {
 
             // order?.orders.map(item => {
 
-            //     if (item.orderId === orderId) {
+            //     if (item.orderId == orderId) {
             //         console.log('orderStatus before', item.status);
             //         item.status = 'Cancelled';
             //         console.log('orderStatus after', item.status);
@@ -821,6 +826,53 @@ async function run() {
 
 
         })
+        app.put(`/payment/card/:id`, async (req, res) => {
+            const orderId = req.params.id
+            const data = req.body
+
+
+            const userOrder = await ordersCollection.findOne({ email: data.user.email });
+            const order = userOrder.orders.find(order => order.orderId == orderId)
+            console.log(order);
+
+
+
+            if (order.paymentServiceProvider) {
+                console.log('payment service provider', order.paymentServiceProvider);
+                res.send({ message: 'Already payment is done. If there is any confusion with this. Kindly contact us through the contact section' })
+            } else {
+
+
+
+                order['providedNumber'] = data.phoneNumber;
+                order['cardNumber'] = data.cardAccountNumber;
+                order['providedName'] = data.name;
+                order['providedBank'] = data.bank;
+                order['paymentDate'] = new Date().toString();
+                order.paymentStatus = 'requested';
+                order.paymentMethod = 'card';
+                order.status = 'placed'
+
+                console.log('order after adding data', order);
+
+
+                const result = await ordersCollection.updateOne(
+                    { email: data.user.email },
+                    {
+                        $set: {
+                            orders: userOrder.orders
+                        }
+                    }
+
+                )
+
+                res.send(result);
+
+            }
+
+
+
+        })
 
 
         ///////////////////////////////////////// ORDER TRACKING FOR ADMIN ////////////////////////////////
@@ -849,7 +901,7 @@ async function run() {
             if (orders[0]) {
                 console.log(orders[0].filteredOrders);
                 res.send(orders[0].filteredOrders);
-            }else{
+            } else {
                 res.send(null)
             }
         })
@@ -876,7 +928,7 @@ async function run() {
             if (orders[0]) {
                 console.log(orders[0].filteredOrders);
                 res.send(orders[0].filteredOrders);
-            }else{
+            } else {
                 res.send(null)
             }
         })
@@ -903,7 +955,7 @@ async function run() {
             if (orders[0]) {
                 console.log(orders[0].filteredOrders);
                 res.send(orders[0].filteredOrders);
-            }else{
+            } else {
                 res.send(null)
             }
         })
@@ -930,7 +982,7 @@ async function run() {
             if (orders[0]) {
                 console.log(orders[0].filteredOrders);
                 res.send(orders[0].filteredOrders);
-            }else{
+            } else {
                 res.send(null)
             }
         })
@@ -938,17 +990,17 @@ async function run() {
 
 
         app.put('/cancelOrder/admin', async (req, res) => {
-            const orderData = req.body;
+            const newOrderData = req.body;
 
 
-            const allOrdersByUser = await ordersCollection.findOne({ email: orderData.userEmail })
+            const allOrdersByUser = await ordersCollection.findOne({ email: newOrderData.userEmail })
 
-            const order = allOrdersByUser?.orders.find(e => e.orderId == orderData.orderId)
+            const order = allOrdersByUser?.orders.find(e => e.orderId == newOrderData.orderId)
 
             order.status = 'Cancelled';
             order.paymentStatus = 'Cancelled';
             const result = await ordersCollection.updateOne(
-                { email: orderData.userEmail },
+                { email: newOrderData.userEmail },
                 {
                     $set: {
                         orders: allOrdersByUser.orders
@@ -960,29 +1012,58 @@ async function run() {
 
         })
         app.put('/paymentReceived/admin', async (req, res) => {
-            const orderData = req.body;
+            const newOrderData = req.body;
 
 
-            const allOrdersByUser = await ordersCollection.findOne({ email: orderData.userEmail })
+            const allOrdersByUser = await ordersCollection.findOne({ email: newOrderData.userEmail })
 
-            const order = allOrdersByUser?.orders.find(e => e.orderId == orderData.orderId)
-if (order.status!="paid") {
-    order.status = 'paid';
-            order.paymentStatus = 'paid';
-            const result = await ordersCollection.updateOne(
-                { email: orderData.userEmail },
-                {
-                    $set: {
-                        orders: allOrdersByUser.orders
+            const order = allOrdersByUser?.orders.find(e => e.orderId == newOrderData.orderId)
+            if (order.status != "paid") {
+                order.status = 'paid';
+                order.paymentStatus = 'paid';
+                const result = await ordersCollection.updateOne(
+                    { email: newOrderData.userEmail },
+                    {
+                        $set: {
+                            orders: allOrdersByUser.orders
+                        }
                     }
-                }
 
-            )
-            res.send(result);
-}else{
-    res.send({message: 'Already updated as paid'})
-}
-            
+                )
+                res.send(result);
+            } else {
+                res.send({ message: 'Already updated as paid' })
+            }
+
+
+        })
+
+        app.put('/problematic-order/admin', async (req, res) => {
+            const newOrderData = req.body;
+
+
+            const allOrdersByUser = await ordersCollection.findOne({ email: newOrderData.userEmail })
+
+            const order = allOrdersByUser?.orders.find(e => e.orderId == newOrderData.orderId)
+            if (order.status != "paid") {
+                order.status = 'could not start shipping problem found';
+                order['feedBack'] = newOrderData.feedBack;
+                order.paymentStatus = 'problem found';
+                const result = await ordersCollection.updateOne(
+                    { email: newOrderData.userEmail },
+                    {
+                        $set: {
+                            orders: allOrdersByUser.orders
+                        }
+                    }
+
+                )
+                res.send(result);
+             
+            } else {
+                res.send({ message: 'Already updated as paid' })
+            }
+
 
         })
 
@@ -991,6 +1072,158 @@ if (order.status!="paid") {
 
 
 
+        /////////////////////////////////// order details ////////////////////////
+
+        app.get('/orderdetails-pdf/download/:orderId/:email', async (req, res) => {
+
+            const orderId = req.params.orderId;
+            const userEmail = req.params.email;
+
+            const allOrdersByUser = await ordersCollection.findOne({ email: userEmail })
+
+            const order = allOrdersByUser?.orders.find(e => e.orderId == orderId)
+            const product = await products.findOne({ _id: new ObjectId(order.productId) })
+
+
+
+
+
+
+
+
+            const documentDefinition = {
+
+                content: [
+                    {
+                        text: 'ElectraHaven',
+                        style: 'header1',
+                        alignment: 'center',
+                        margin: [0, 30],
+                    },
+                    {
+                        text: 'Order Details',
+                        style: 'header',
+                    },
+                    {
+                        layout: 'noBorders',
+                        table: {
+                            widths: ['35%', '65%'],
+                            body: [
+                                [{ text: 'Order ID:', style: 'tableHeader' }, order.orderId],
+                                [{ text: 'Order Date:', style: 'tableHeader' }, order.orderDate],
+                                [{ text: 'Payment Date:', style: 'tableHeader' }, order.paymentDate],
+                                [{ text: 'Payment Method:', style: 'tableHeader' }, order.paymentMethod],
+                                [
+                                    { text: 'Payment Service Provider:', style: 'tableHeader' },
+                                    order.paymentMethod == 'card' ? order.providedBank : order.paymentServiceProvider,
+                                ],
+                                [{ text: 'Payment Status:', style: 'tableHeader' }, order.paymentStatus],
+                                [{ text: 'Quantity:', style: 'tableHeader' }, order.quantity],
+                                [{ text: 'Total Price:', style: 'tableHeader' }, `${order.totalPrice} bdt`],
+                                [
+                                    { text: 'Card Number:', style: 'tableHeader' },
+                                    order.paymentMethod == 'card' ? order.cardNumber : 'Not Available for mobile transaction',
+                                ],
+                                [
+                                    { text: 'Provided Phone Number:', style: 'tableHeader' },
+                                    order.paymentMethod == 'card' ? order.providedNumber : 'Not Available for mobile transaction',
+                                ],
+                                [
+                                    { text: 'Provided Name:', style: 'tableHeader' },
+                                    order.paymentMethod == 'card' ? order.providedName : 'Not Available for mobile transaction',
+                                ],
+                                [
+                                    { text: 'Total Transactions:', style: 'tableHeader' },
+                                    order.paymentMethod == 'card' ? 'N/A in card transaction' : order.transactionCount,
+                                ],
+                                [
+                                    { text: 'Transaction Phone Number:', style: 'tableHeader' },
+                                    order.paymentMethod == 'card' ? 'N/A in card transaction' : order.transactionPhoneNumber,
+                                ],
+                                [{ text: 'User Email:', style: 'tableHeader' }, order.userEmail],
+                            ],
+                        },
+                    },
+                    {
+                        text: 'Product Details',
+                        style: 'header',
+                    },
+                    {
+                        layout: 'noBorders',
+                        table: {
+                            widths: ['35%', '65%'],
+                            body: [
+                                [{ text: 'Model Number:', style: 'tableHeader' }, product.modelNumber],
+                                [{ text: 'Brand:', style: 'tableHeader' }, product.brand],
+                                [{ text: 'Capacity:', style: 'tableHeader' }, product.capacity],
+                                [{ text: 'Type:', style: 'tableHeader' }, product.type],
+                            ],
+                        },
+                    },
+                    {
+                        text: 'Shipping Address',
+                        style: 'header',
+                    },
+                    {
+                        layout: 'noBorders',
+                        table: {
+                            widths: ['35%', '65%'],
+                            body: [
+                                [{ text: 'Full Name:', style: 'tableHeader' }, order.shippingAddress.fullName],
+                                [{ text: 'Phone:', style: 'tableHeader' }, order.shippingAddress.phone],
+                                [{ text: 'Division:', style: 'tableHeader' }, order.shippingAddress.division],
+                                [{ text: 'District:', style: 'tableHeader' }, order.shippingAddress.district],
+                                [{ text: 'Sub-District:', style: 'tableHeader' }, order.shippingAddress.subDistrict],
+                                [{ text: 'House:', style: 'tableHeader' }, order.shippingAddress.house],
+                                [{ text: 'Street:', style: 'tableHeader' }, order.shippingAddress.street],
+                                [{ text: 'Postal Code:', style: 'tableHeader' }, order.shippingAddress.postalCode],
+                                [{ text: 'Landmark:', style: 'tableHeader' }, order.shippingAddress.landMark],
+                            ],
+                        },
+                    },
+                ],
+                styles: {
+                    header: {
+                        fontSize: 18,
+                        bold: true,
+                        margin: [0, 10, 0, 10],
+                    },
+                    header1: {
+                        fontSize: 30,
+                        bold: true,
+                        margin: [0, 10, 0, 10],
+                    },
+                    tableHeader: {
+                        bold: true,
+                        fillColor: '#f2f2f2',
+                    },
+                },
+            };
+
+            if (order.paymentMethod == 'mobileBanking') {
+                documentDefinition.content.push({
+                    text: 'Transaction ID and other details',
+                    style: 'header',
+                });
+                documentDefinition.content.push({
+                    layout: 'noBorders',
+                    table: {
+                        widths: ['50%', '50%'],
+                        body: [['Transaction ID ', 'Amount'], ...order.transactions.map((transaction) => [transaction.transactionId, transaction.amount])],
+                    },
+                });
+            }
+
+
+
+            const pdfDoc = pdfMake.createPdf(documentDefinition);
+            pdfDoc.getBuffer((buffer) => {
+                res.setHeader('Content-Type', 'application/pdf');
+                res.setHeader('Content-Disposition', 'attachment; filename=ElectraHaven_order.pdf');
+                res.end(buffer);
+            });
+
+        })
 
 
     } finally {
