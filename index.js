@@ -986,6 +986,33 @@ async function run() {
                 res.send(null)
             }
         })
+        app.get('/orders/payment-status/problem', async (req, res) => {
+            console.log('api hit........................!!!!!!!!!!!!!');
+            const cursor = ordersCollection.aggregate([
+                {
+                    $unwind: "$orders" // Unwind the "orders" array
+                },
+                {
+                    $match: {
+                        "orders.paymentStatus": "problem found"
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        filteredOrders: { $push: "$orders" }
+                    }
+                }
+            ]);
+            const orders = await cursor.toArray();
+
+            if (orders[0]) {
+                console.log(orders[0].filteredOrders);
+                res.send(orders[0].filteredOrders);
+            } else {
+                res.send(null)
+            }
+        })
 
 
 
