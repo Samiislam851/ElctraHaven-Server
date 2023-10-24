@@ -22,7 +22,7 @@ const store_id = sslcStoreId
 const store_passwd = sslcApiKey
 const is_live = false //true for live, false for sandbox
 
-const uri = `mongodb+srv://mongoId:IzxHVRpaCCZiyoO9@cluster0.lkouiuy.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://samisiam851:IzxHVRpaCCZiyoO9@cluster0.lkouiuy.mongodb.net/?retryWrites=true&w=majority`;
 
 ////////////////////////////////////////// JWT verification //////////////////////////////////////////////////
 const verifyJWT = (req, res, next) => {
