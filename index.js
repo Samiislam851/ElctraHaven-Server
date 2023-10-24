@@ -22,7 +22,7 @@ const store_id = sslcStoreId
 const store_passwd = sslcApiKey
 const is_live = false //true for live, false for sandbox
 
-const uri = `mongodb+srv://${mongoId}:${mongoPass}@cluster0.lkouiuy.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://samisiam851:IzxHVRpaCCZiyoO9@cluster0.lkouiuy.mongodb.net/?retryWrites=true&w=majority`;
 
 ////////////////////////////////////////// JWT verification //////////////////////////////////////////////////
 const verifyJWT = (req, res, next) => {
@@ -102,7 +102,7 @@ async function run() {
                 photoURL: photoURL,
                 role: role
             }
-
+            console.log('user from post api', user);
             const query = { email: user?.email }
             const existingUser = await usersCollection.findOne(query);
 
@@ -337,6 +337,29 @@ async function run() {
 
             console.log('solarpanel api hitted .................');
             const query = { type: 'solar panel' };
+            let cursor = products.find(query);
+            let result = await cursor.toArray();
+
+            res.send(result);
+        })
+        app.get('/accounting-meters/all', async (req, res) => {
+
+            console.log('accounting meters api hitted .................');
+            const query = { type: 'accounting meter' };
+            let cursor = products.find(query);
+            let result = await cursor.toArray();
+
+            res.send(result);
+        })
+        app.get('/rmcable-and-batteries/all', async (req, res) => {
+
+            console.log('rmcable-and-batteries api hitted .................');
+            const  query = {
+                $or: [
+                  { type: 'RMCable' },
+                  { type: 'battery' }
+                ]
+              };
             let cursor = products.find(query);
             let result = await cursor.toArray();
 
@@ -1086,7 +1109,7 @@ async function run() {
 
                 )
                 res.send(result);
-             
+
             } else {
                 res.send({ message: 'Already updated as paid' })
             }
