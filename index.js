@@ -4,7 +4,7 @@ const { ObjectId } = require('mongodb');
 const app = express()
 const cors = require('cors')
 const bodyParser = require('body-parser');
-const port = 5000
+const port = process.env.port || 5000
 const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const mongoId = process.env.MONGO_ID
@@ -22,7 +22,7 @@ const store_id = sslcStoreId
 const store_passwd = sslcApiKey
 const is_live = false //true for live, false for sandbox
 
-const uri = `mongodb+srv://samisiam851:IzxHVRpaCCZiyoO9@cluster0.lkouiuy.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://rifatulkarimrifat100:3G7DtvsDQcHMIhcp@cluster0.j2afzya.mongodb.net/?retryWrites=true&w=majority`;
 
 ////////////////////////////////////////// JWT verification //////////////////////////////////////////////////
 const verifyJWT = (req, res, next) => {
