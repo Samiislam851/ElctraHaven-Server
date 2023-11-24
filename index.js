@@ -124,18 +124,22 @@ async function run() {
             const userData = await usersCollection.findOne({ email: email });
             res.send(userData);
         })
+
+
         app.get('/adminNumber', async (req, res) => {
 
             const user = await usersCollection.findOne({
                 $and: [
                     { role: 'admin' },
-                    { grade: '1' }
+                    { grade: 1 }
                 ]
             });
 
-            console.log('admin ', user.bankingPhone);
-            res.send(user.bankingPhone);
+            console.log('admin ', user?.bankingPhone);
+            res.send(user?.bankingPhone);
         })
+
+
         app.put('/user/update-address/:id', async (req, res) => {
             const id = req.params.id;
             const address = req.body;
@@ -189,6 +193,12 @@ async function run() {
             res.send(result);
 
         })
+
+
+
+
+
+
 
         app.delete('/users/delete/:id', async (req, res) => {
             const id = req.params.id
@@ -354,12 +364,12 @@ async function run() {
         app.get('/rmcable-and-batteries/all', async (req, res) => {
 
             console.log('rmcable-and-batteries api hitted .................');
-            const  query = {
+            const query = {
                 $or: [
-                  { type: 'RMCable' },
-                  { type: 'battery' }
+                    { type: 'RMCable' },
+                    { type: 'battery' }
                 ]
-              };
+            };
             let cursor = products.find(query);
             let result = await cursor.toArray();
 
